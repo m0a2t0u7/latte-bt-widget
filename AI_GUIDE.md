@@ -28,4 +28,5 @@
 
 ## 注意
 - `build.yml` の Release／Drive の手順は消さない
+- `app/debug.keystore` と `build.gradle.kts` の signingConfigs は消さない（消すと上書きインストールできなくなる）
 - Secrets `GAS_URL` `GAS_KEY` はリポジトリ設定にある。コードに直書きしない
