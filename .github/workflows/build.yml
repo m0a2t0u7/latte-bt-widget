@@ -1,5 +1,7 @@
 name: Build APK
 on: { push: { branches: [main] }, workflow_dispatch: {} }
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,5 +12,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '8.7' }
       - run: gradle :app:assembleDebug
+      - run: cp app/build/outputs/apk/debug/app-debug.apk latte-bt-widget.apk
       - uses: actions/upload-artifact@v4
-        with: { name: latte-bt-widget-apk, path: app/build/outputs/apk/debug/*.apk }
+        with: { name: latte-bt-widget-apk, path: latte-bt-widget.apk }
+      # 常に同じURLで最新版を配布する（古いリリースは消して作り直す）
+      - name: Publish latest release
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh release delete latest --cleanup-tag -y || true
+          gh release create latest latte-bt-widget.apk --title "最新版 (${GITHUB_SHA::7})" --notes "自動ビルド ${GITHUB_SHA::7}" --latest
