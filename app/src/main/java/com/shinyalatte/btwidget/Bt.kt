@@ -48,15 +48,38 @@ object Bt {
     @SuppressLint("MissingPermission")
     fun name(d: BluetoothDevice): String = runCatching { d.alias ?: d.name }.getOrNull() ?: d.address
 
-    /** 非公開API disconnect をリフレクションで呼ぶ。1つでも成功したら true */
-    fun tryDisconnect(list: List<Pair<Int, BluetoothProfile>>, d: BluetoothDevice): Boolean {
+    /** ペアリング済みのオーディオ機器（ヘッドホン・イヤホン・スピーカー） */
+    @SuppressLint("MissingPermission")
+    fun audioBonded(c: Context): List<BluetoothDevice> = runCatching {
+        adapter(c)?.bondedDevices.orEmpty().filter {
+            it.bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.AUDIO_VIDEO
+        }.sortedBy { name(it) }
+    }.getOrDefault(emptyList())
+
+    fun device(c: Context, addr: String): BluetoothDevice? =
+        runCatching { adapter(c)?.getRemoteDevice(addr) }.getOrNull()
+
+    /** 非公開API disconnect/connect をリフレクションで呼ぶ。1つでも成功したら true */
+    private fun call(list: List<Pair<Int, BluetoothProfile>>, d: BluetoothDevice, method: String): Boolean {
         var ok = false
         list.forEach { (_, proxy) ->
             runCatching {
-                val m = proxy.javaClass.getMethod("disconnect", BluetoothDevice::class.java)
+                val m = proxy.javaClass.getMethod(method, BluetoothDevice::class.java)
                 if (m.invoke(proxy, d) == true) ok = true
             }
         }
         return ok
     }
+    fun tryDisconnect(list: List<Pair<Int, BluetoothProfile>>, d: BluetoothDevice) = call(list, d, "disconnect")
+    fun tryConnect(list: List<Pair<Int, BluetoothProfile>>, d: BluetoothDevice) = call(list, d, "connect")
+
+    // 最後に使った機器（再接続用）
+    private fun prefs(c: Context) = c.getSharedPreferences("bt", Context.MODE_PRIVATE)
+    fun saveLast(c: Context, d: BluetoothDevice) =
+        prefs(c).edit().putString("lastAddr", d.address).putString("lastName", name(d)).apply()
+    fun lastAddr(c: Context): String? = prefs(c).getString("lastAddr", null)
+    fun lastName(c: Context): String? = prefs(c).getString("lastName", null)
+
+    fun notifEnabled(c: Context) = prefs(c).getBoolean("notif", false)
+    fun setNotifEnabled(c: Context, v: Boolean) = prefs(c).edit().putBoolean("notif", v).apply()
 }

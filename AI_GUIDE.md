@@ -2,7 +2,9 @@
 
 ## このリポジトリ
 - Androidウィジェットアプリ「ラテBT」（ウィジェット1×1／2×1／4×1）
-- Bluetoothの接続状態と接続中の機器名を表示し、ボタンで切断（失敗時は設定画面を開く）
+- Bluetoothの接続状態と接続中の機器名を表示し、切断・再接続・他機器への切替（失敗時は設定画面を開く）
+- ウィジェット（1×1/2×1/4×1）と常時通知の両方から同じ操作ができる
+- BT本体のオン/オフはAndroid 13以降アプリから不可のため設定画面を開く
 - Kotlin、ライブラリ依存なし、minSdk 26 / targetSdk 34
 
 ## 修正の流れ
@@ -21,7 +23,10 @@
 | ファイル | 役割 |
 |---|---|
 | `BtWidgetProvider.kt` | 全サイズのウィジェット表示と自動更新（Small=1×1, Medium=2×1, 本体=4×1） |
-| `DisconnectActivity.kt` | 切断ボタン処理 |
+| `ActionActivity.kt` | 画面なしで 切断／再接続／切替(connect)／トグル を実行 |
+| `PickerActivity.kt` | ペアリング済みオーディオ機器の一覧、タップで切替・切断 |
+| `Notif.kt` / `BtStatusService.kt` | 常時通知（前面サービス）と再起動時の復帰 |
+| `Ui.kt` | 状態取得とウィジェット・通知の一括更新 |
 | `Bt.kt` | Bluetooth共通処理（非公開API disconnect をリフレクションで呼ぶ） |
 | `MainActivity.kt` | 権限許可と使い方表示 |
 | `tools/drive-uploader.gs` | Drive保存用GAS（全アプリ共通、デプロイ済みのものを使う） |
