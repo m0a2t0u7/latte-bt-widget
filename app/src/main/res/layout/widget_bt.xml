@@ -1,8 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp"
-    android:background="@drawable/widget_bg">
-    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+    android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp" android:background="@drawable/widget_bg">
+    <ImageView android:id="@+id/icon" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_bt"/>
+    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="10dp">
         <TextView android:id="@+id/status" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="読み込み中" android:textColor="#4FD1C5" android:textSize="13sp" android:textStyle="bold"/>
         <TextView android:id="@+id/device" android:layout_width="wrap_content" android:layout_height="wrap_content"

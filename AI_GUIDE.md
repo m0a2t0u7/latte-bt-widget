@@ -1,7 +1,7 @@
 # AI向け引き継ぎガイド（Claude / ChatGPT 共通）
 
 ## このリポジトリ
-- Androidウィジェットアプリ「ラテBTウィジェット」
+- Androidウィジェットアプリ「ラテBT」（ウィジェット1×1／2×1／4×1）
 - Bluetoothの接続状態と接続中の機器名を表示し、ボタンで切断（失敗時は設定画面を開く）
 - Kotlin、ライブラリ依存なし、minSdk 26 / targetSdk 34
 
@@ -20,7 +20,7 @@
 ## 主要ファイル
 | ファイル | 役割 |
 |---|---|
-| `BtWidgetProvider.kt` | ウィジェット表示と自動更新 |
+| `BtWidgetProvider.kt` | 全サイズのウィジェット表示と自動更新（Small=1×1, Medium=2×1, 本体=4×1） |
 | `DisconnectActivity.kt` | 切断ボタン処理 |
 | `Bt.kt` | Bluetooth共通処理（非公開API disconnect をリフレクションで呼ぶ） |
 | `MainActivity.kt` | 権限許可と使い方表示 |

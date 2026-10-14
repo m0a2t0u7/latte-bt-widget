@@ -14,10 +14,15 @@ class DisconnectActivity : Activity() {
         if (!Bt.hasPerm(this)) {
             startActivity(Intent(this, MainActivity::class.java)); finish(); return
         }
+        val a = Bt.adapter(this)
+        if (a == null || !a.isEnabled) {
+            startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); finish(); return
+        }
         Bt.withProxies(this) { list ->
             val devs = Bt.connected(list)
             if (devs.isEmpty()) {
-                Toast.makeText(this, "接続中の機器はありません", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "未接続です。Bluetooth設定を開きます", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             } else {
                 val failed = devs.filterNot { Bt.tryDisconnect(list, it) }
                 if (failed.isEmpty()) {
