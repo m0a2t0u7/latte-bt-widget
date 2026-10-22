@@ -54,7 +54,7 @@ class AppearanceTest : InstrumentationTestCase() {
                     val view = remote.apply(themed, null)
                     assertEquals(themed.getColor(R.color.widget_text), view.findViewById<TextView>(R.id.device).currentTextColor)
                     val tint = view.findViewById<android.widget.ImageView>(R.id.icon).imageTintList
-                    assertEquals(themed.getColor(R.color.widget_connected), tint.defaultColor)
+                    assertEquals(themed.getColor(R.color.widget_connected), tint!!.defaultColor)
                     remote.reapply(themed, view)
                 }
             }

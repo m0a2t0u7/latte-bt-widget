@@ -91,6 +91,7 @@ class MainActivity : Activity() {
     }
 
     override fun onRequestPermissionsResult(r: Int, p: Array<out String>, g: IntArray) {
+        super.onRequestPermissionsResult(r, p, g)
         if (Bt.notifEnabled(this)) BtStatusService.start(this)
         Ui.refreshAll(applicationContext)
     }
