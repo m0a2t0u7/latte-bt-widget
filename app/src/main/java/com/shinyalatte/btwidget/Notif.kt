@@ -23,7 +23,7 @@ object Notif {
             .setSmallIcon(R.drawable.ic_bt)
             .setOngoing(true).setOnlyAlertOnce(true).setShowWhen(false)
             .setContentIntent(Ui.picker(c, 20))
-        if (s == null) return b.setContentTitle("ラテBT").setContentText("読み込み中").build()
+        if (s == null) return b.setContentTitle(c.getString(R.string.app_name)).setContentText("読み込み中").build()
         b.setContentTitle(Ui.statusText(s)).setContentText(Ui.deviceText(s))
             .setColor(when (s.state) {
                 Ui.State.CONNECTED -> 0xFF3DDC97.toInt()
