@@ -41,7 +41,7 @@ jobs:
           script: |
             adb install -g app/build/outputs/apk/debug/app-debug.apk
             adb install -g app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            adb shell am instrument -w com.shinyalatte.btwidget.test/android.test.InstrumentationTestRunner | tee instrumentation.txt
+            adb shell am instrument -w com.shinyalatte.btwidget.test/com.shinyalatte.btwidget.AppearanceInstrumentation | tee instrumentation.txt
             grep -q 'OK (1 test)' instrumentation.txt
             mkdir -p appearance-qa
             adb exec-out run-as com.shinyalatte.btwidget tar -C files -cf - appearance-qa > appearance-qa.tar

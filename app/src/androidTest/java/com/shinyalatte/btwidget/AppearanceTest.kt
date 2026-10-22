@@ -4,13 +4,30 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.test.InstrumentationTestCase
+import android.app.Instrumentation
+import android.app.Activity
+import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import java.io.File
 
-@Suppress("DEPRECATION")
-class AppearanceTest : InstrumentationTestCase() {
+class AppearanceInstrumentation : Instrumentation() {
+    private val instrumentation get() = this
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); start() }
+    override fun onStart() {
+        val result = Bundle()
+        try {
+            testThemesAndAllWidgetSizes()
+            result.putString("stream", "\nOK (1 test)\n")
+            finish(Activity.RESULT_OK, result)
+        } catch (e: Throwable) {
+            result.putString("stream", "\nFAILURES!!!\n" + e.stackTraceToString())
+            finish(Activity.RESULT_CANCELED, result)
+        }
+    }
+    private fun assertTrue(value: Boolean) { check(value) }
+    private fun assertEquals(expected: Any?, actual: Any?) { check(expected == actual) { "Expected $expected but got $actual" } }
+
     fun testThemesAndAllWidgetSizes() {
         val c = instrumentation.targetContext
         val before = Bt.notifEnabled(c)
