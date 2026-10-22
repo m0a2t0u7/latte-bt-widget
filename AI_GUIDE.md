@@ -1,7 +1,7 @@
 # AI向け引き継ぎガイド（Claude / ChatGPT 共通）
 
 ## このリポジトリ
-- Androidウィジェットアプリ「ラテBT」（ウィジェット1×1／2×1／4×1）
+- Androidウィジェットアプリ「Bluetoothウィジェット｜ラテ」（旧名ラテBT）（ウィジェット1×1／2×1／4×1）
 - Bluetoothの接続状態と接続中の機器名を表示し、切断・再接続・他機器への切替（失敗時は設定画面を開く）
 - ウィジェット（1×1/2×1/4×1）と常時通知の両方から同じ操作ができる
 - BT本体のオン/オフはAndroid 13以降アプリから不可のため設定画面を開く
@@ -11,8 +11,8 @@
 1. `app/src/main/` 以下を修正して `main` にpushするだけ
 2. GitHub Actions（`.github/workflows/build.yml`）が自動で
    - APKをビルド
-   - Release `latest` を作り直して最新版を配布
-   - Google Drive「自作アプリAPK/latte-bt-widget」へ保存し、古いAPKをゴミ箱へ
+   - 版・コミット別Releaseを追加して旧版を保持
+   - 旧版を保持できるGASへ再デプロイ済みのときのみDrive自動保存（`GAS_PRESERVES_OLD_APKS=true`）。それまでは接続済みDriveツールでAPK実体を保存し、サイズ・親・署名・台帳を確認する
 3. ローカルビルド環境は不要。手元でビルドしようとしないこと
 
 ## 完了報告に必ず入れるもの
@@ -35,3 +35,11 @@
 - `build.yml` の Release／Drive の手順は消さない
 - `app/debug.keystore` と `build.gradle.kts` の signingConfigs は消さない（消すと上書きインストールできなくなる）
 - Secrets `GAS_URL` `GAS_KEY` はリポジトリ設定にある。コードに直書きしない
+
+## 1.1 更新
+- 名称を機能がわかる「Bluetoothウィジェット｜ラテ」に変更。スマホ画面＋ウィジェットの採用②アイコン。
+- 外観はライト／ダーク／端末設定。通知自体はAndroidが配色を決める。
+- 外観設定は独立したappearance設定に保存。既存のBluetooth機器／通知設定は維持。
+- 端末テーマ連動はAPI31以降、RemoteViewsの色リソースとday/night drawableでホスト再描画時にも反映する。
+- ビルド、lint、旧APK署名比較、エミュレータ表示の証拠をActions artifactへ保存。実際のBluetooth機器接続は実機未確認。
+- 旧GASエンドポイントは古いAPKを削除するため、そのまま再有効化しない。tools/drive-uploader.gsの保持版をデプロイ後だけGAS_PRESERVES_OLD_APKSをtrueにする。

@@ -1,5 +1,5 @@
 /**
- * 自作アプリAPK を Google Drive に保存し、同じアプリの古いAPKをゴミ箱へ移す。
+ * 自作アプリAPK を Google Drive に保存し、古いAPKも保持する。
  * 全アプリ共通。GASに1回だけデプロイすれば、どのリポジトリからも使える。
  * 呼び出し: POST {URL}?key=..&app=アプリ名&ver=版  本文=APKのbase64
  */
@@ -21,14 +21,8 @@ function doPost(e) {
     'application/vnd.android.package-archive', name);
   const file = folder.createFile(blob);
 
-  // 古いAPKをゴミ箱へ（30日間は復元可）
-  let trashed = 0;
-  const it = folder.getFiles();
-  while (it.hasNext()) {
-    const f = it.next();
-    if (f.getId() !== file.getId()) { f.setTrashed(true); trashed++; }
-  }
-  return out({ ok: true, file: name, url: file.getUrl(), folder: folder.getUrl(), trashed: trashed });
+  // Keep every previously delivered APK.
+  return out({ ok: true, file: name, url: file.getUrl(), folder: folder.getUrl(), trashed: 0 });
 }
 
 function getOrCreate(parent, name) {

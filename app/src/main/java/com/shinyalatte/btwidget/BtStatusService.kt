@@ -49,6 +49,11 @@ class BtStatusService : Service() {
     }
 
     override fun onStartCommand(i: Intent?, flags: Int, id: Int): Int { Ui.refreshAll(applicationContext); return START_STICKY }
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Ui.refreshAll(applicationContext)
+    }
+
     override fun onDestroy() { running = false; runCatching { unregisterReceiver(rx) }; super.onDestroy() }
     override fun onBind(i: Intent?): IBinder? = null
 }
