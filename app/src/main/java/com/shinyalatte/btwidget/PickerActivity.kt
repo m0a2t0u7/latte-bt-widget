@@ -34,7 +34,7 @@ class PickerActivity : Activity() {
         }, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginEnd = dp(8) })
         bottom.addView(btn("閉じる", if (Appearance.light(this)) "#E5EDFA" else "#35445A") { finish() }, LinearLayout.LayoutParams(0, dp(48), 1f))
         box.addView(bottom)
-        box.background = GradientDrawable().apply { setColor(Appearance.surface(this)); cornerRadius = dp(20).toFloat() }
+        box.background = GradientDrawable().apply { setColor(Appearance.surface(this@PickerActivity)); cornerRadius = dp(20).toFloat() }
         setContentView(box)
         window.setLayout(resources.displayMetrics.widthPixels - dp(32), android.view.WindowManager.LayoutParams.WRAP_CONTENT)
         window.setGravity(Gravity.BOTTOM)
