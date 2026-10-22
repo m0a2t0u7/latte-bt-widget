@@ -46,7 +46,7 @@ object Bt {
         list.flatMap { runCatching { it.second.connectedDevices }.getOrDefault(emptyList()) }.distinctBy { it.address }
 
     @SuppressLint("MissingPermission")
-    fun name(d: BluetoothDevice): String = runCatching { d.alias ?: d.name }.getOrNull() ?: d.address
+    fun name(d: BluetoothDevice): String = runCatching { (if (Build.VERSION.SDK_INT >= 30) d.alias else null) ?: d.name }.getOrNull() ?: d.address
 
     /** ペアリング済みのオーディオ機器（ヘッドホン・イヤホン・スピーカー） */
     @SuppressLint("MissingPermission")
