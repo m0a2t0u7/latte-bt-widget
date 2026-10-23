@@ -3,11 +3,43 @@ on: { push: { branches: [main] }, workflow_dispatch: {} }
 permissions:
   contents: write
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   APP_NAME: latte-bt-widget
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify patched JavaScript Actions runtime
+        id: node_runtime_guard
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, shlex, subprocess
+          pid = os.getppid()
+          root = None
+          for _ in range(12):
+              command = subprocess.check_output(['ps', '-p', str(pid), '-o', 'command='], text=True).strip()
+              for argument in shlex.split(command):
+                  if argument.endswith('/bin/Runner.Worker'):
+                      root = pathlib.Path(argument).parent.parent
+                      break
+              if root:
+                  break
+              parent = subprocess.check_output(['ps', '-p', str(pid), '-o', 'ppid='], text=True).strip()
+              if not parent or int(parent) <= 1:
+                  break
+              pid = int(parent)
+          if root is None:
+              raise SystemExit('::error::Cannot locate the active GitHub Actions runner; refusing unchecked JavaScript Actions.')
+          node = root / 'externals' / 'node24' / 'bin' / 'node'
+          if not node.is_file():
+              raise SystemExit('::error::Runner has no Node.js 24 runtime. Upgrade runner to v2.338.1 or newer.')
+          version = subprocess.check_output([str(node), '--version'], text=True).strip()
+          parts = tuple(map(int, version.lstrip('v').split('.')))
+          if not ((24, 22, 1) <= parts < (25, 0, 0)):
+              raise SystemExit('::error::Unpatched Actions runtime ' + version + '; require Node.js 24.22.1 or newer in the 24.x line.')
+          print('Verified Actions runtime ' + version)
+          PY
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '17' }
@@ -47,7 +79,7 @@ jobs:
             adb exec-out run-as com.shinyalatte.btwidget tar -C files -cf - appearance-qa > appearance-qa.tar
             tar -xf appearance-qa.tar
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ always() && steps.node_runtime_guard.outcome == 'success' }}
         with:
           name: bluetooth-widget-1.1-verification
           path: |
@@ -58,6 +90,7 @@ jobs:
             app/build/reports/lint-results-debug.html
       # Versioned releases preserve every previously delivered APK.
       - name: Publish versioned release
+        if: ${{ false }} # Disable external delivery during security remediation
         env: { GH_TOKEN: '${{ github.token }}' }
         run: |
           TAG="v1.1-${GITHUB_SHA::7}"
@@ -65,7 +98,7 @@ jobs:
       # The deployed legacy GAS deletes older files. Keep this step gated until its safe replacement is deployed.
       # Current delivery uses the connected Drive upload tool and metadata readback.
       - name: Upload to Google Drive
-        if: ${{ vars.GAS_PRESERVES_OLD_APKS == 'true' }}
+        if: ${{ false }} # Disable external delivery during security remediation
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
           GAS_KEY: ${{ secrets.GAS_KEY }}
