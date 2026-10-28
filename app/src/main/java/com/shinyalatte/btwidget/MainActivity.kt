@@ -76,6 +76,16 @@ class MainActivity : Activity() {
                 "常時通知：切断／再接続・切替・BT設定ボタン\n\n" +
                 "Bluetooth自体のオン/オフはAndroidの制限でアプリから切れないため、BT設定を開きます"
         })
+        val versionName = try {
+            packageManager.getPackageInfo(packageName, 0).versionName?.takeIf { it.isNotBlank() } ?: "確認できません"
+        } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+            "確認できません"
+        }
+        box.addView(TextView(this).apply {
+            text = "バージョン $versionName"; textSize = 14f
+            setTextColor(Appearance.muted(this@MainActivity)); setPadding(0, dp(20), 0, 0)
+            setTextIsSelectable(true)
+        })
         box.setBackgroundColor(Appearance.background(this))
         setContentView(ScrollView(this).apply { setBackgroundColor(Appearance.background(this@MainActivity)); addView(box) })
         ensurePerms()
