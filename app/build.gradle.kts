@@ -2,7 +2,7 @@ plugins { id("com.android.application"); id("org.jetbrains.kotlin.android") }
 android {
     namespace = "com.shinyalatte.btwidget"
     compileSdk = 34
-    defaultConfig { applicationId = "com.shinyalatte.btwidget"; minSdk = 26; targetSdk = 34; versionCode = 2; versionName = "1.1"; testInstrumentationRunner = "com.shinyalatte.btwidget.AppearanceInstrumentation" }
+    defaultConfig { applicationId = "com.shinyalatte.btwidget"; minSdk = 26; targetSdk = 34; versionCode = 3; versionName = "1.2"; testInstrumentationRunner = "com.shinyalatte.btwidget.AppearanceInstrumentation" }
     // 毎回同じ鍵で署名して上書きインストールを可能にする（消さないこと）
     signingConfigs {
         getByName("debug") {
