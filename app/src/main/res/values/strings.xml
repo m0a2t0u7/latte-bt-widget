@@ -2,5 +2,6 @@
     <string name="app_name">Bluetoothウィジェット｜ラテ</string>
     <string name="w_small">Bluetoothウィジェット｜ラテ 1×1</string>
     <string name="w_medium">Bluetoothウィジェット｜ラテ 2×1</string>
+    <string name="w_wide">Bluetoothウィジェット｜ラテ 3×1</string>
     <string name="w_large">Bluetoothウィジェット｜ラテ 4×1</string>
 </resources>

@@ -39,11 +39,16 @@ class AppearanceInstrumentation : Instrumentation() {
             instrumentation.runOnMainSync {
                 assertTrue(a.window.decorView.width > 0)
                 render(a.window.decorView, "main-$mode")
-                for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetProvider())) {
+                for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetWide(), BtWidgetProvider())) {
                     for (state in Ui.State.values()) {
                         val snap = Ui.Snap(state, if (state == Ui.State.CONNECTED) listOf("UGREEN FitBuds") else emptyList(), "UGREEN FitBuds")
                         val view = provider.build(c, snap).apply(c, null)
-                        val width = when (provider.kind) { BtWidgetProvider.Kind.SMALL -> 90; BtWidgetProvider.Kind.MEDIUM -> 180; else -> 360 }
+                        val width = when (provider.kind) {
+                            BtWidgetProvider.Kind.SMALL -> 90
+                            BtWidgetProvider.Kind.MEDIUM -> 180
+                            BtWidgetProvider.Kind.WIDE -> 270
+                            BtWidgetProvider.Kind.LARGE -> 360
+                        }
                         val density = c.resources.displayMetrics.density
                         view.measure(View.MeasureSpec.makeMeasureSpec((width * density).toInt(), View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec((88 * density).toInt(), View.MeasureSpec.EXACTLY))
                         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
@@ -58,7 +63,7 @@ class AppearanceInstrumentation : Instrumentation() {
             instrumentation.runOnMainSync { if (!picker.isFinishing) render(picker.window.decorView, "picker-$mode"); picker.finish() }
         }
         Appearance.save(c, Appearance.SYSTEM)
-        for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetProvider())) {
+        for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetWide(), BtWidgetProvider())) {
             val snap = Ui.Snap(Ui.State.CONNECTED, listOf("UGREEN FitBuds"), "UGREEN FitBuds")
             val remote = provider.build(c, snap)
             for (night in listOf(false, true)) {

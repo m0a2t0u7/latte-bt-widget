@@ -17,11 +17,11 @@ import com.shinyalatte.btwidget.Ui.State
 open class BtWidgetProvider : AppWidgetProvider() {
     open val layout = R.layout.widget_bt
     open val kind = Kind.LARGE
-    enum class Kind { SMALL, MEDIUM, LARGE }
+    enum class Kind { SMALL, MEDIUM, WIDE, LARGE }
 
     companion object {
         const val ACTION_REFRESH = "com.shinyalatte.btwidget.REFRESH"
-        private val ALL = listOf(BtWidgetProvider(), BtWidgetSmall(), BtWidgetMedium())
+        private val ALL = listOf(BtWidgetProvider(), BtWidgetSmall(), BtWidgetMedium(), BtWidgetWide())
 
         fun draw(c: Context, s: Ui.Snap) {
             val mgr = AppWidgetManager.getInstance(c)
@@ -130,4 +130,10 @@ class BtWidgetSmall : BtWidgetProvider() {
 class BtWidgetMedium : BtWidgetProvider() {
     override val layout = R.layout.widget_medium
     override val kind = Kind.MEDIUM
+}
+
+/** 3×1 */
+class BtWidgetWide : BtWidgetProvider() {
+    override val layout = R.layout.widget_medium
+    override val kind = Kind.WIDE
 }
