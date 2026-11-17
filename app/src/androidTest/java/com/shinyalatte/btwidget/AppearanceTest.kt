@@ -56,15 +56,23 @@ class AppearanceInstrumentation : Instrumentation() {
                         measureWidget(view, width, 48)
                         val status = view.findViewById<TextView>(R.id.status)
                         assertTrue(status.text.isNotEmpty())
+                        val colored = state in listOf(Ui.State.CONNECTED, Ui.State.IDLE, Ui.State.OFF)
+                        val fill = solidColor(view)
+                        if (colored) {
+                            assertEquals(if (state == Ui.State.CONNECTED) CONNECTED_GREEN else DISCONNECTED_RED, fill)
+                            assertEquals(Color.WHITE, status.currentTextColor)
+                            assertEquals(Color.WHITE, view.findViewById<TextView>(R.id.device).currentTextColor)
+                        } else {
+                            assertTrue(fill != CONNECTED_GREEN && fill != DISCONNECTED_RED)
+                        }
                         val button = view.findViewById<TextView>(R.id.btn_main)
                         when (state) {
                             Ui.State.CONNECTED, Ui.State.IDLE -> {
                                 val connected = state == Ui.State.CONNECTED
                                 assertEquals(View.VISIBLE, button.visibility)
                                 assertEquals(if (connected) "切断" else "再接続", button.text.toString())
-                                assertEquals(Color.WHITE, button.currentTextColor)
-                                val fill = (button.background as GradientDrawable).color?.defaultColor
-                                assertEquals(Color.parseColor(if (connected) "#B62B3B" else "#08764F"), fill)
+                                assertEquals(Color.parseColor("#102A43"), button.currentTextColor)
+                                assertEquals(Color.WHITE, solidColor(button))
                                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                                 assertEquals(0, button.layout.getEllipsisCount(0))
                             }
@@ -81,8 +89,9 @@ class AppearanceInstrumentation : Instrumentation() {
         }
         Appearance.save(c, Appearance.SYSTEM)
         for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetWide(), BtWidgetProvider())) {
-            val snap = Ui.Snap(Ui.State.CONNECTED, listOf("UGREEN FitBuds"), "UGREEN FitBuds")
-            val remote = provider.build(c, snap)
+            val connected = provider.build(c, Ui.Snap(Ui.State.CONNECTED, listOf("UGREEN FitBuds"), "UGREEN FitBuds"))
+            val disconnected = provider.build(c, Ui.Snap(Ui.State.IDLE, emptyList(), "UGREEN FitBuds"))
+            val neutral = provider.build(c, Ui.Snap(Ui.State.NOPERM, emptyList(), null))
             for (night in listOf(false, true)) {
                 val config = Configuration(c.resources.configuration).apply {
                     uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
@@ -90,17 +99,39 @@ class AppearanceInstrumentation : Instrumentation() {
                 }
                 val themed = c.createConfigurationContext(config)
                 instrumentation.runOnMainSync {
-                    val view = remote.apply(themed, null)
-                    assertEquals(themed.getColor(R.color.widget_text), view.findViewById<TextView>(R.id.device).currentTextColor)
+                    val view = connected.apply(themed, null)
+                    val device = view.findViewById<TextView>(R.id.device)
                     val icon = view.findViewById<android.widget.ImageView>(R.id.icon)
-                    if (icon != null) assertEquals(themed.getColor(R.color.widget_connected), icon.imageTintList!!.defaultColor)
-                    remote.reapply(themed, view)
+                    assertEquals(CONNECTED_GREEN, solidColor(view))
+                    assertEquals(Color.WHITE, device.currentTextColor)
+                    if (icon != null) assertEquals(Color.WHITE, icon.imageTintList!!.defaultColor)
+
+                    disconnected.reapply(themed, view)
+                    assertEquals(DISCONNECTED_RED, solidColor(view))
+                    assertEquals(Color.WHITE, device.currentTextColor)
+
+                    neutral.reapply(themed, view)
+                    assertEquals(Color.parseColor(if (night) "#E6202326" else "#FFFFFF"), solidColor(view))
+                    assertEquals(themed.getColor(R.color.widget_text), device.currentTextColor)
+                    if (icon != null) assertEquals(themed.getColor(R.color.widget_muted), icon.imageTintList!!.defaultColor)
+
+                    connected.reapply(themed, view)
+                    assertEquals(CONNECTED_GREEN, solidColor(view))
+                    assertEquals(Color.WHITE, device.currentTextColor)
                 }
             }
         }
         testResizing(c)
         assertEquals(before, Bt.notifEnabled(c))
         Appearance.save(c, Appearance.SYSTEM)
+    }
+
+    private fun solidColor(view: View): Int? =
+        (view.background as GradientDrawable).color?.defaultColor
+
+    private companion object {
+        val CONNECTED_GREEN = Color.parseColor("#08764F")
+        val DISCONNECTED_RED = Color.parseColor("#B62B3B")
     }
 
     private fun testResizing(c: Context) {

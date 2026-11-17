@@ -56,7 +56,7 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --print-certs "$APP_NAME.apk" > apk-cert.txt
           diff <(grep 'certificate SHA-256 digest' previous-cert.txt) <(grep 'certificate SHA-256 digest' apk-cert.txt)
           "$BUILD_TOOLS/aapt" dump badging "$APP_NAME.apk" > apk-metadata.txt
-          grep "package: name='com.shinyalatte.btwidget' versionCode='4' versionName='1.3'" apk-metadata.txt
+          grep "package: name='com.shinyalatte.btwidget' versionCode='5' versionName='1.4'" apk-metadata.txt
           sha256sum "$APP_NAME.apk" > apk-sha256.txt
       - name: Enable KVM
         run: |
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ always() && steps.node_runtime_guard.outcome == 'success' }}
         with:
-          name: bluetooth-widget-1.3-verification
+          name: bluetooth-widget-1.4-verification
           path: |
             latte-bt-widget.apk
             apk-*.txt

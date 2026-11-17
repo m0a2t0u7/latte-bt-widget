@@ -93,28 +93,31 @@ open class BtWidgetProvider : AppWidgetProvider() {
     ): RemoteViews {
         val v = RemoteViews(c.packageName, layout.resource)
         val light = Appearance.light(c)
-        v.setInt(R.id.root, "setBackgroundResource", if (Appearance.mode(c) == Appearance.SYSTEM) R.drawable.widget_bg_system else if (light) R.drawable.widget_bg_light else R.drawable.widget_bg)
-        v.setTextColor(R.id.device, Appearance.text(c))
-        val color = when (s.state) {
-            State.CONNECTED -> Color.parseColor(if (light) "#08764F" else "#59E3AB")
-            State.IDLE, State.OFF -> Color.parseColor(if (light) "#B62B3B" else "#FF8D98")
-            else -> Appearance.muted(c)
+        val systemMode = Appearance.mode(c) == Appearance.SYSTEM
+        val stateBackground = when (s.state) {
+            State.CONNECTED -> R.drawable.widget_bg_connected
+            State.IDLE, State.OFF -> R.drawable.widget_bg_disconnected
+            State.NOPERM, State.NONE -> null
         }
-        // Resource actions are resolved by the launcher on configuration changes (Android 12+).
-        val systemResources = Build.VERSION.SDK_INT >= 31 && Appearance.mode(c) == Appearance.SYSTEM
-        val statusRes = when (s.state) {
-            State.CONNECTED -> R.color.widget_connected
-            State.IDLE, State.OFF -> R.color.widget_off
-            else -> R.color.widget_muted
+        val colored = stateBackground != null
+        val background = stateBackground ?: when {
+            systemMode -> R.drawable.widget_bg_system
+            light -> R.drawable.widget_bg_light
+            else -> R.drawable.widget_bg
         }
+        v.setInt(R.id.root, "setBackgroundResource", background)
+        v.setTextColor(R.id.device, if (colored) Color.WHITE else Appearance.text(c))
+        val statusColor = if (colored) Color.WHITE else Appearance.muted(c)
+        // Resource actions resolve neutral colors using the launcher theme on Android 12+.
+        val systemResources = !colored && Build.VERSION.SDK_INT >= 31 && systemMode
         if (systemResources) v.setColorStateList(R.id.device, "setTextColor", R.color.widget_text)
         val compact = layout == Layout.COMPACT
         if (!compact) {
             v.setViewVisibility(R.id.icon, if (showIcon) View.VISIBLE else View.GONE)
             when {
-                systemResources -> v.setColorStateList(R.id.icon, "setImageTintList", statusRes)
-                Build.VERSION.SDK_INT >= 31 -> v.setColorStateList(R.id.icon, "setImageTintList", android.content.res.ColorStateList.valueOf(color))
-                else -> v.setInt(R.id.icon, "setColorFilter", color)
+                systemResources -> v.setColorStateList(R.id.icon, "setImageTintList", R.color.widget_muted)
+                Build.VERSION.SDK_INT >= 31 -> v.setColorStateList(R.id.icon, "setImageTintList", android.content.res.ColorStateList.valueOf(statusColor))
+                else -> v.setInt(R.id.icon, "setColorFilter", statusColor)
             }
         }
         val noPerm = s.state == State.NOPERM
@@ -130,8 +133,8 @@ open class BtWidgetProvider : AppWidgetProvider() {
         } else Ui.statusText(s)
 
         v.setTextViewText(R.id.status, status)
-        v.setTextColor(R.id.status, color)
-        if (systemResources) v.setColorStateList(R.id.status, "setTextColor", statusRes)
+        v.setTextColor(R.id.status, statusColor)
+        if (systemResources) v.setColorStateList(R.id.status, "setTextColor", R.color.widget_muted)
         val device = when {
             compact && s.state == State.IDLE -> s.lastName.orEmpty()
             noPerm -> "タップして許可"
@@ -151,12 +154,16 @@ open class BtWidgetProvider : AppWidgetProvider() {
 
         v.setViewVisibility(R.id.btn_main, if (showBtn) View.VISIBLE else View.GONE)
         v.setTextViewText(R.id.btn_main, if (connected) "切断" else "再接続")
-        v.setTextColor(R.id.btn_main, Color.WHITE)
-        v.setInt(R.id.btn_main, "setBackgroundResource", if (connected) R.drawable.btn_red_rect else R.drawable.btn_green_rect)
         v.setOnClickPendingIntent(R.id.btn_main, Ui.action(c, if (connected) "disconnect" else "reconnect", if (connected) 6 else 7))
         if (full) {
-            v.setInt(R.id.btn_switch, "setBackgroundResource", if (Appearance.mode(c) == Appearance.SYSTEM) R.drawable.btn_gray_system else if (light) R.drawable.btn_gray_light else R.drawable.btn_gray_rect)
-            v.setTextColor(R.id.btn_switch, Appearance.text(c))
+            val switchBackground = when {
+                colored -> R.drawable.btn_widget_switch
+                systemMode -> R.drawable.btn_gray_system
+                light -> R.drawable.btn_gray_light
+                else -> R.drawable.btn_gray_rect
+            }
+            v.setInt(R.id.btn_switch, "setBackgroundResource", switchBackground)
+            v.setTextColor(R.id.btn_switch, if (colored) Color.WHITE else Appearance.text(c))
             if (systemResources) v.setColorStateList(R.id.btn_switch, "setTextColor", R.color.widget_text)
             v.setViewVisibility(R.id.btn_switch, if (s.state == State.OFF) View.GONE else View.VISIBLE)
             v.setOnClickPendingIntent(R.id.btn_switch, if (s.state == State.OFF) Ui.settings(c, 3) else Ui.picker(c, 8))

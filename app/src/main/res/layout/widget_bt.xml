@@ -13,5 +13,5 @@
         android:text="切替" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/btn_gray_rect"/>
     <TextView android:id="@+id/btn_main" android:layout_width="wrap_content" android:layout_height="32dp" android:gravity="center" android:includeFontPadding="false" android:maxLines="1"
         android:paddingStart="8dp" android:paddingEnd="8dp"
-        android:text="切断" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/btn_red_rect"/>
+        android:text="切断" android:textColor="#102A43" android:textSize="13sp" android:background="@drawable/btn_widget_action"/>
 </LinearLayout>

@@ -9,5 +9,5 @@
     <TextView android:id="@+id/btn_main" android:layout_width="43dp" android:layout_height="29dp" android:gravity="center" android:paddingHorizontal="3dp"
         android:text="切断" android:textSize="11sp" android:includeFontPadding="false" android:maxLines="1" android:ellipsize="end"
         android:autoSizeTextType="uniform" android:autoSizeMinTextSize="8sp" android:autoSizeMaxTextSize="11sp" android:autoSizeStepGranularity="1sp"
-        android:textColor="#FFFFFF" android:background="@drawable/btn_red_rect"/>
+        android:textColor="#102A43" android:background="@drawable/btn_widget_action"/>
 </LinearLayout>
