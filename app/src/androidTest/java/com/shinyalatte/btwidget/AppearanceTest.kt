@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.app.Instrumentation
 import android.app.Activity
@@ -56,14 +57,15 @@ class AppearanceInstrumentation : Instrumentation() {
                         measureWidget(view, width, 48)
                         val status = view.findViewById<TextView>(R.id.status)
                         assertTrue(status.text.isNotEmpty())
-                        val colored = state in listOf(Ui.State.CONNECTED, Ui.State.IDLE, Ui.State.OFF)
-                        val fill = solidColor(view)
-                        if (colored) {
-                            assertEquals(if (state == Ui.State.CONNECTED) CONNECTED_GREEN else DISCONNECTED_RED, fill)
+                        val tint = when (state) {
+                            Ui.State.CONNECTED -> Tint.GREEN
+                            Ui.State.IDLE, Ui.State.OFF -> Tint.RED
+                            else -> if (Appearance.light(c)) Tint.LIGHT else Tint.DARK
+                        }
+                        assertGlass(view, tint)
+                        if (tint == Tint.GREEN || tint == Tint.RED) {
                             assertEquals(Color.WHITE, status.currentTextColor)
                             assertEquals(Color.WHITE, view.findViewById<TextView>(R.id.device).currentTextColor)
-                        } else {
-                            assertTrue(fill != CONNECTED_GREEN && fill != DISCONNECTED_RED)
                         }
                         val button = view.findViewById<TextView>(R.id.btn_main)
                         when (state) {
@@ -72,7 +74,7 @@ class AppearanceInstrumentation : Instrumentation() {
                                 assertEquals(View.VISIBLE, button.visibility)
                                 assertEquals(if (connected) "切断" else "再接続", button.text.toString())
                                 assertEquals(Color.parseColor("#102A43"), button.currentTextColor)
-                                assertEquals(Color.WHITE, solidColor(button))
+                                assertEquals(Color.parseColor("#F0FFFFFF"), solidColor(button))
                                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                                 assertEquals(0, button.layout.getEllipsisCount(0))
                             }
@@ -102,21 +104,21 @@ class AppearanceInstrumentation : Instrumentation() {
                     val view = connected.apply(themed, null)
                     val device = view.findViewById<TextView>(R.id.device)
                     val icon = view.findViewById<android.widget.ImageView>(R.id.icon)
-                    assertEquals(CONNECTED_GREEN, solidColor(view))
+                    assertGlass(view, Tint.GREEN)
                     assertEquals(Color.WHITE, device.currentTextColor)
                     if (icon != null) assertEquals(Color.WHITE, icon.imageTintList!!.defaultColor)
 
                     disconnected.reapply(themed, view)
-                    assertEquals(DISCONNECTED_RED, solidColor(view))
+                    assertGlass(view, Tint.RED)
                     assertEquals(Color.WHITE, device.currentTextColor)
 
                     neutral.reapply(themed, view)
-                    assertEquals(Color.parseColor(if (night) "#E6202326" else "#FFFFFF"), solidColor(view))
+                    assertGlass(view, if (night) Tint.DARK else Tint.LIGHT)
                     assertEquals(themed.getColor(R.color.widget_text), device.currentTextColor)
                     if (icon != null) assertEquals(themed.getColor(R.color.widget_muted), icon.imageTintList!!.defaultColor)
 
                     connected.reapply(themed, view)
-                    assertEquals(CONNECTED_GREEN, solidColor(view))
+                    assertGlass(view, Tint.GREEN)
                     assertEquals(Color.WHITE, device.currentTextColor)
                 }
             }
@@ -129,9 +131,34 @@ class AppearanceInstrumentation : Instrumentation() {
     private fun solidColor(view: View): Int? =
         (view.background as GradientDrawable).color?.defaultColor
 
-    private companion object {
-        val CONNECTED_GREEN = Color.parseColor("#08764F")
-        val DISCONNECTED_RED = Color.parseColor("#B62B3B")
+    private enum class Tint { GREEN, RED, LIGHT, DARK }
+
+    private fun assertGlass(view: View, tint: Tint) {
+        val background = view.background
+        val originalBounds = Rect(background.bounds)
+        val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+        try {
+            background.setBounds(0, 0, bitmap.width, bitmap.height)
+            background.draw(Canvas(bitmap))
+            val highlight = bitmap.getPixel(48, 16)
+            val base = bitmap.getPixel(48, 80)
+            assertTrue(highlight != base)
+            for (pixel in listOf(highlight, base)) {
+                assertTrue(Color.alpha(pixel) in 190..250)
+                val red = Color.red(pixel)
+                val green = Color.green(pixel)
+                val blue = Color.blue(pixel)
+                assertTrue(when (tint) {
+                    Tint.GREEN -> green > blue && blue > red
+                    Tint.RED -> red > blue && blue > green
+                    Tint.LIGHT -> red > 225 && green > 225 && blue > 225
+                    Tint.DARK -> red < 50 && green < 60 && blue < 80
+                })
+            }
+        } finally {
+            background.bounds = originalBounds
+            bitmap.recycle()
+        }
     }
 
     private fun testResizing(c: Context) {
