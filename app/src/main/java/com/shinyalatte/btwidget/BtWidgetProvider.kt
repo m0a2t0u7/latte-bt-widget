@@ -48,7 +48,7 @@ open class BtWidgetProvider : AppWidgetProvider() {
         }
 
         internal fun layoutFor(width: Float, height: Float): Layout = when {
-            width >= 220 && height >= 44 -> Layout.FULL
+            width >= 220 && height >= 40 -> Layout.FULL
             width >= 105 && height >= 36 -> Layout.MEDIUM
             else -> Layout.COMPACT
         }
@@ -68,10 +68,10 @@ open class BtWidgetProvider : AppWidgetProvider() {
         val landscapeWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
         val landscapeHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
         val portrait = if (portraitWidth > 0) {
-            buildForSize(c, s, portraitWidth.toFloat(), if (portraitHeight > 0) portraitHeight.toFloat() else 44f)
+            buildForSize(c, s, portraitWidth.toFloat(), if (portraitHeight > 0) portraitHeight.toFloat() else 40f)
         } else null
         val landscape = if (landscapeWidth > 0) {
-            buildForSize(c, s, landscapeWidth.toFloat(), if (landscapeHeight > 0) landscapeHeight.toFloat() else 44f)
+            buildForSize(c, s, landscapeWidth.toFloat(), if (landscapeHeight > 0) landscapeHeight.toFloat() else 40f)
         } else null
         return when {
             portrait != null && landscape != null -> RemoteViews(landscape, portrait)

@@ -106,14 +106,14 @@ class AppearanceInstrumentation : Instrumentation() {
     private fun testResizing(c: Context) {
         val snap = Ui.Snap(Ui.State.CONNECTED, listOf("UGREEN FitBuds"), "UGREEN FitBuds")
         val provider = BtWidgetWide()
-        val sizes = listOf(40 to 40, 55 to 110, 160 to 40, 270 to 40, 270 to 48)
+        val sizes = listOf(40 to 40, 55 to 110, 160 to 40, 270 to 39, 270 to 40, 270 to 48)
         instrumentation.runOnMainSync {
             for ((width, height) in sizes) {
                 val view = provider.buildForSize(c, snap, width.toFloat(), height.toFloat()).apply(c, null)
                 measureWidget(view, width, height)
                 val device = view.findViewById<TextView>(R.id.device)
                 assertEquals(if (width == 40) View.GONE else View.VISIBLE, device.visibility)
-                assertEquals(width >= 220 && height >= 44, view.findViewById<View>(R.id.btn_switch) != null)
+                assertEquals(width >= 220 && height >= 40, view.findViewById<View>(R.id.btn_switch) != null)
                 val button = view.findViewById<TextView>(R.id.btn_main)
                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                 render(view, "widget-resize-${width}x$height")
