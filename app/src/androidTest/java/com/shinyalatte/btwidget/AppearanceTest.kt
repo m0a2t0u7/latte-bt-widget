@@ -1,9 +1,13 @@
 package com.shinyalatte.btwidget
 
+import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.app.Instrumentation
 import android.app.Activity
 import android.os.Bundle
@@ -42,17 +46,30 @@ class AppearanceInstrumentation : Instrumentation() {
                 for (provider in listOf(BtWidgetSmall(), BtWidgetMedium(), BtWidgetWide(), BtWidgetProvider())) {
                     for (state in Ui.State.values()) {
                         val snap = Ui.Snap(state, if (state == Ui.State.CONNECTED) listOf("UGREEN FitBuds") else emptyList(), "UGREEN FitBuds")
-                        val view = provider.build(c, snap).apply(c, null)
                         val width = when (provider.kind) {
                             BtWidgetProvider.Kind.SMALL -> 90
                             BtWidgetProvider.Kind.MEDIUM -> 180
                             BtWidgetProvider.Kind.WIDE -> 270
                             BtWidgetProvider.Kind.LARGE -> 360
                         }
-                        val density = c.resources.displayMetrics.density
-                        view.measure(View.MeasureSpec.makeMeasureSpec((width * density).toInt(), View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec((88 * density).toInt(), View.MeasureSpec.EXACTLY))
-                        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
-                        assertTrue(view.findViewById<TextView>(R.id.device).text.isNotEmpty())
+                        val view = provider.buildForSize(c, snap, width.toFloat(), 48f).apply(c, null)
+                        measureWidget(view, width, 48)
+                        val status = view.findViewById<TextView>(R.id.status)
+                        assertTrue(status.text.isNotEmpty())
+                        val button = view.findViewById<TextView>(R.id.btn_main)
+                        when (state) {
+                            Ui.State.CONNECTED, Ui.State.IDLE -> {
+                                val connected = state == Ui.State.CONNECTED
+                                assertEquals(View.VISIBLE, button.visibility)
+                                assertEquals(if (connected) "切断" else "再接続", button.text.toString())
+                                assertEquals(Color.WHITE, button.currentTextColor)
+                                val fill = (button.background as GradientDrawable).color?.defaultColor
+                                assertEquals(Color.parseColor(if (connected) "#B62B3B" else "#08764F"), fill)
+                                assertTrue(button.top >= 0 && button.bottom <= view.height)
+                                assertEquals(0, button.layout.getEllipsisCount(0))
+                            }
+                            else -> assertEquals(View.GONE, button.visibility)
+                        }
                         render(view, "widget-$mode-${provider.kind}-$state")
                     }
                 }
@@ -75,14 +92,59 @@ class AppearanceInstrumentation : Instrumentation() {
                 instrumentation.runOnMainSync {
                     val view = remote.apply(themed, null)
                     assertEquals(themed.getColor(R.color.widget_text), view.findViewById<TextView>(R.id.device).currentTextColor)
-                    val tint = view.findViewById<android.widget.ImageView>(R.id.icon).imageTintList
-                    assertEquals(themed.getColor(R.color.widget_connected), tint!!.defaultColor)
+                    val icon = view.findViewById<android.widget.ImageView>(R.id.icon)
+                    if (icon != null) assertEquals(themed.getColor(R.color.widget_connected), icon.imageTintList!!.defaultColor)
                     remote.reapply(themed, view)
                 }
             }
         }
+        testResizing(c)
         assertEquals(before, Bt.notifEnabled(c))
         Appearance.save(c, Appearance.SYSTEM)
+    }
+
+    private fun testResizing(c: Context) {
+        val snap = Ui.Snap(Ui.State.CONNECTED, listOf("UGREEN FitBuds"), "UGREEN FitBuds")
+        val provider = BtWidgetWide()
+        val sizes = listOf(40 to 40, 55 to 110, 160 to 40, 270 to 40, 270 to 48)
+        instrumentation.runOnMainSync {
+            for ((width, height) in sizes) {
+                val view = provider.buildForSize(c, snap, width.toFloat(), height.toFloat()).apply(c, null)
+                measureWidget(view, width, height)
+                val device = view.findViewById<TextView>(R.id.device)
+                assertEquals(if (width == 40) View.GONE else View.VISIBLE, device.visibility)
+                assertEquals(width >= 220 && height >= 44, view.findViewById<View>(R.id.btn_switch) != null)
+                val button = view.findViewById<TextView>(R.id.btn_main)
+                assertTrue(button.top >= 0 && button.bottom <= view.height)
+                render(view, "widget-resize-${width}x$height")
+            }
+
+            val bounds = Bundle().apply {
+                putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 55)
+                putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 110)
+                putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 270)
+                putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 48)
+            }
+            val views = provider.buildForWidget(c, snap, bounds)
+            val portrait = c.createConfigurationContext(Configuration(c.resources.configuration).apply {
+                orientation = Configuration.ORIENTATION_PORTRAIT
+            })
+            val landscape = c.createConfigurationContext(Configuration(c.resources.configuration).apply {
+                orientation = Configuration.ORIENTATION_LANDSCAPE
+            })
+            assertEquals(View.VISIBLE, views.apply(portrait, null).findViewById<View>(R.id.device).visibility)
+            assertEquals(null, views.apply(portrait, null).findViewById<View>(R.id.btn_switch))
+            assertTrue(views.apply(landscape, null).findViewById<View>(R.id.btn_switch) != null)
+        }
+    }
+
+    private fun measureWidget(view: View, width: Int, height: Int) {
+        val density = view.resources.displayMetrics.density
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec((width * density).toInt(), View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec((height * density).toInt(), View.MeasureSpec.EXACTLY)
+        )
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
     }
 
     private fun render(view: View, name: String) {

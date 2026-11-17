@@ -72,7 +72,7 @@ class MainActivity : Activity() {
         box.addView(TextView(this).apply {
             setTextColor(Appearance.muted(this@MainActivity)); textSize = 14f; setPadding(0, dp(24), 0, 0)
             text = "ウィジェット：ホーム画面を長押し →ウィジェット →「Bluetoothウィジェット｜ラテ」から1×1／2×1／3×1／4×1を配置\n\n" +
-                "1×1：タップで切断／直前の機器に再接続\n2×1・3×1・4×1：本体タップで機器選択、ボタンで切断・再接続\n" +
+                "配置後は長押ししてサイズを調整できます。表示はサイズに合わせて変わります。\n赤の「切断」と緑の「再接続」で操作できます。\n" +
                 "常時通知：切断／再接続・切替・BT設定ボタン\n\n" +
                 "Bluetooth自体のオン/オフはAndroidの制限でアプリから切れないため、BT設定を開きます"
         })
