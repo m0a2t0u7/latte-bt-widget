@@ -62,10 +62,13 @@ class AppearanceInstrumentation : Instrumentation() {
                             else -> if (Appearance.light(c)) Tint.LIGHT else Tint.DARK
                         }
                         assertGlass(view, tint)
-                        if (tint == Tint.GREEN || tint == Tint.RED) {
-                            assertEquals(Color.WHITE, status.currentTextColor)
-                            assertEquals(Color.WHITE, view.findViewById<TextView>(R.id.device).currentTextColor)
-                        }
+                        val density = view.resources.displayMetrics.density
+                        val height = (48 * density).toInt()
+                        val upperRim = sampleBackground(view, (width * density).toInt(), height, listOf((2 * density).toInt())).single()
+                        assertTrue(Color.alpha(upperRim) > 195)
+                        assertEquals(Color.WHITE, status.currentTextColor)
+                        assertEquals(Color.WHITE, view.findViewById<TextView>(R.id.device).currentTextColor)
+                        assertTrue(Color.alpha(sampleBackground(status, 96, 96, listOf(48)).single()) >= 170)
                         val button = view.findViewById<TextView>(R.id.btn_main)
                         when (state) {
                             Ui.State.CONNECTED, Ui.State.IDLE -> {
@@ -107,10 +110,8 @@ class AppearanceInstrumentation : Instrumentation() {
                 instrumentation.runOnMainSync {
                     val view = connected.apply(themed, null)
                     val device = view.findViewById<TextView>(R.id.device)
-                    val icon = view.findViewById<android.widget.ImageView>(R.id.icon)
                     assertGlass(view, Tint.GREEN)
                     assertEquals(Color.WHITE, device.currentTextColor)
-                    if (icon != null) assertEquals(Color.WHITE, icon.imageTintList!!.defaultColor)
 
                     disconnected.reapply(themed, view)
                     assertGlass(view, Tint.RED)
@@ -118,8 +119,7 @@ class AppearanceInstrumentation : Instrumentation() {
 
                     neutral.reapply(themed, view)
                     assertGlass(view, if (night) Tint.DARK else Tint.LIGHT)
-                    assertEquals(themed.getColor(R.color.widget_text), device.currentTextColor)
-                    if (icon != null) assertEquals(themed.getColor(R.color.widget_muted), icon.imageTintList!!.defaultColor)
+                    assertEquals(Color.WHITE, device.currentTextColor)
 
                     connected.reapply(themed, view)
                     assertGlass(view, Tint.GREEN)
@@ -136,22 +136,22 @@ class AppearanceInstrumentation : Instrumentation() {
 
     private fun assertGlass(view: View, tint: Tint) {
         for (pixel in sampleGradient(view)) {
-            assertTrue(Color.alpha(pixel) in 190..250)
+            assertTrue(Color.alpha(pixel) in 75..125)
             val red = Color.red(pixel)
             val green = Color.green(pixel)
             val blue = Color.blue(pixel)
             assertTrue(when (tint) {
                 Tint.GREEN -> green > blue && blue > red
                 Tint.RED -> red > blue && blue > green
-                Tint.LIGHT -> red > 225 && green > 225 && blue > 225
-                Tint.DARK -> red < 50 && green < 60 && blue < 80
+                Tint.LIGHT -> red > 160 && green >= red && blue >= green
+                Tint.DARK -> red < 85 && green < 100 && blue < 135
             })
         }
     }
 
     private fun assertGlassButton(view: View) {
         for (pixel in sampleGradient(view)) {
-            assertTrue(Color.alpha(pixel) in 1..64)
+            assertTrue(Color.alpha(pixel) in 150..239)
         }
     }
 
@@ -162,7 +162,7 @@ class AppearanceInstrumentation : Instrumentation() {
         val offset = (2 * density).toInt()
         val (upper, center, lower) = sampleBackground(view, width, height, listOf(offset, height / 2, height - offset - 1))
         assertTrue(Color.alpha(upper) > 180 && Color.alpha(lower) > 140)
-        assertTrue(Color.alpha(center) <= 64)
+        assertTrue(Color.alpha(center) in 150..205)
         assertTrue(Color.red(upper) > 225 && Color.green(upper) > 225 && Color.blue(upper) > 225)
         assertTrue(Color.blue(lower) > Color.red(lower))
     }

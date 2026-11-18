@@ -1,6 +1,5 @@
 <resources>
     <color name="widget_text">#102A43</color>
-    <color name="widget_muted">#50657B</color>
     <item type="drawable" name="widget_bg_system">@drawable/widget_bg_light</item>
     <item type="drawable" name="btn_gray_system">@drawable/btn_gray_light</item>
 </resources>

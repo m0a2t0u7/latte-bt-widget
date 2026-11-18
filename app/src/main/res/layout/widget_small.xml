@@ -2,10 +2,10 @@
     android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:gravity="center" android:paddingHorizontal="2dp"
     android:background="@drawable/widget_bg">
-    <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content"
+    <TextView android:id="@+id/status" android:textColor="#FFFFFF" android:paddingHorizontal="2dp" android:background="@drawable/widget_label_glass" android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center" android:textSize="10sp" android:textStyle="bold" android:includeFontPadding="false"
         android:maxLines="1" android:ellipsize="end" />
-    <TextView android:id="@+id/device" android:layout_width="match_parent" android:layout_height="wrap_content"
+    <TextView android:id="@+id/device" android:textColor="#FFFFFF" android:paddingHorizontal="2dp" android:background="@drawable/widget_label_glass" android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center" android:textSize="10sp" android:includeFontPadding="false"
         android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
     <TextView android:id="@+id/btn_main" android:layout_width="36dp" android:layout_height="20dp"
