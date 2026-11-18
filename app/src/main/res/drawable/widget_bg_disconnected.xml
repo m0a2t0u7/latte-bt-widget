@@ -1,25 +1,5 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape>
-            <gradient android:angle="270" android:startColor="#72CB536D" android:centerColor="#55A8465C" android:endColor="#69963863"/>
-            <stroke android:width="1dp" android:color="#A3FFE0ED"/>
-            <corners android:radius="12dp"/>
-        </shape>
-    </item>
-    <item android:gravity="top|fill_horizontal" android:height="2dp"
-        android:left="9dp" android:top="1dp" android:right="9dp">
-        <shape>
-            <gradient android:angle="0" android:startColor="#00FFFFFF"
-                android:centerColor="#F0FFFFFF" android:endColor="#00FFFFFF"/>
-            <corners android:radius="1dp"/>
-        </shape>
-    </item>
-    <item android:gravity="bottom|fill_horizontal" android:height="2dp"
-        android:left="9dp" android:right="9dp" android:bottom="1dp">
-        <shape>
-            <gradient android:angle="0" android:startColor="#C2F786A8"
-                android:centerColor="#3DD4EBFF" android:endColor="#D1A683EC"/>
-            <corners android:radius="1dp"/>
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="270" android:startColor="#CBFFF0F5" android:centerColor="#B9F6CEDC" android:endColor="#BBE9B6CE"/>
+    <stroke android:width="1dp" android:color="#C5FFFFFF"/>
+    <corners android:radius="14dp"/>
+</shape>

@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -99,7 +98,6 @@ open class BtWidgetProvider : AppWidgetProvider() {
             State.IDLE, State.OFF -> R.drawable.widget_bg_disconnected
             State.NOPERM, State.NONE -> null
         }
-        val colored = stateBackground != null
         val background = stateBackground ?: when {
             systemMode -> R.drawable.widget_bg_system
             light -> R.drawable.widget_bg_light
@@ -140,17 +138,9 @@ open class BtWidgetProvider : AppWidgetProvider() {
 
         v.setViewVisibility(R.id.btn_main, if (showBtn) View.VISIBLE else View.GONE)
         v.setTextViewText(R.id.btn_main, if (connected) "切断" else "再接続")
+        v.setInt(R.id.btn_main, "setBackgroundResource", if (connected) R.drawable.btn_widget_action else R.drawable.btn_widget_reconnect)
         v.setOnClickPendingIntent(R.id.btn_main, Ui.action(c, if (connected) "disconnect" else "reconnect", if (connected) 6 else 7))
         if (full) {
-            val switchBackground = when {
-                colored -> R.drawable.btn_widget_switch
-                systemMode -> R.drawable.btn_gray_system
-                light -> R.drawable.btn_gray_light
-                else -> R.drawable.btn_gray_rect
-            }
-            v.setInt(R.id.btn_switch, "setBackgroundResource", switchBackground)
-            v.setTextColor(R.id.btn_switch, if (colored) Color.WHITE else Appearance.text(c))
-            if (!colored && Build.VERSION.SDK_INT >= 31 && systemMode) v.setColorStateList(R.id.btn_switch, "setTextColor", R.color.widget_text)
             v.setViewVisibility(R.id.btn_switch, if (s.state == State.OFF) View.GONE else View.VISIBLE)
             v.setOnClickPendingIntent(R.id.btn_switch, if (s.state == State.OFF) Ui.settings(c, 3) else Ui.picker(c, 8))
         }

@@ -62,22 +62,24 @@ class AppearanceInstrumentation : Instrumentation() {
                             else -> if (Appearance.light(c)) Tint.LIGHT else Tint.DARK
                         }
                         assertGlass(view, tint)
-                        val density = view.resources.displayMetrics.density
-                        val height = (48 * density).toInt()
-                        val upperRim = sampleBackground(view, (width * density).toInt(), height, listOf((2 * density).toInt())).single()
-                        assertTrue(Color.alpha(upperRim) > 195)
-                        assertEquals(Color.WHITE, status.currentTextColor)
-                        assertEquals(Color.WHITE, view.findViewById<TextView>(R.id.device).currentTextColor)
-                        assertTrue(Color.alpha(sampleBackground(status, 96, 96, listOf(48)).single()) >= 170)
+                        assertEquals(DARK_INK, status.currentTextColor)
+                        assertEquals(null, status.background)
+                        val device = view.findViewById<TextView>(R.id.device)
+                        assertEquals(DARK_INK, device.currentTextColor)
+                        assertEquals(null, device.background)
                         val button = view.findViewById<TextView>(R.id.btn_main)
                         when (state) {
                             Ui.State.CONNECTED, Ui.State.IDLE -> {
                                 val connected = state == Ui.State.CONNECTED
                                 assertEquals(View.VISIBLE, button.visibility)
                                 assertEquals(if (connected) "切断" else "再接続", button.text.toString())
-                                assertEquals(Color.WHITE, button.currentTextColor)
+                                assertEquals(DARK_INK, button.currentTextColor)
                                 assertGlassButton(button)
-                                assertRefractedRim(button)
+                                if (!connected) {
+                                    val lavender = sampleGradient(button).last()
+                                    assertTrue(Color.blue(lavender) > Color.red(lavender))
+                                    assertTrue(Color.red(lavender) > Color.green(lavender))
+                                }
                                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                                 assertEquals(0, button.layout.getEllipsisCount(0))
                             }
@@ -111,19 +113,19 @@ class AppearanceInstrumentation : Instrumentation() {
                     val view = connected.apply(themed, null)
                     val device = view.findViewById<TextView>(R.id.device)
                     assertGlass(view, Tint.GREEN)
-                    assertEquals(Color.WHITE, device.currentTextColor)
+                    assertEquals(DARK_INK, device.currentTextColor)
 
                     disconnected.reapply(themed, view)
                     assertGlass(view, Tint.RED)
-                    assertEquals(Color.WHITE, device.currentTextColor)
+                    assertEquals(DARK_INK, device.currentTextColor)
 
                     neutral.reapply(themed, view)
                     assertGlass(view, if (night) Tint.DARK else Tint.LIGHT)
-                    assertEquals(Color.WHITE, device.currentTextColor)
+                    assertEquals(DARK_INK, device.currentTextColor)
 
                     connected.reapply(themed, view)
                     assertGlass(view, Tint.GREEN)
-                    assertEquals(Color.WHITE, device.currentTextColor)
+                    assertEquals(DARK_INK, device.currentTextColor)
                 }
             }
         }
@@ -132,39 +134,29 @@ class AppearanceInstrumentation : Instrumentation() {
         Appearance.save(c, Appearance.SYSTEM)
     }
 
+    private val DARK_INK = Color.parseColor("#17273F")
+
     private enum class Tint { GREEN, RED, LIGHT, DARK }
 
     private fun assertGlass(view: View, tint: Tint) {
         for (pixel in sampleGradient(view)) {
-            assertTrue(Color.alpha(pixel) in 75..125)
+            assertTrue(Color.alpha(pixel) in 160..211)
             val red = Color.red(pixel)
             val green = Color.green(pixel)
             val blue = Color.blue(pixel)
             assertTrue(when (tint) {
                 Tint.GREEN -> green > blue && blue > red
                 Tint.RED -> red > blue && blue > green
-                Tint.LIGHT -> red > 160 && green >= red && blue >= green
-                Tint.DARK -> red < 85 && green < 100 && blue < 135
+                Tint.LIGHT -> red > 190 && green >= red && blue >= green
+                Tint.DARK -> red > 180 && green > red && blue > green
             })
         }
     }
 
     private fun assertGlassButton(view: View) {
         for (pixel in sampleGradient(view)) {
-            assertTrue(Color.alpha(pixel) in 150..239)
+            assertTrue(Color.alpha(pixel) in 165..246)
         }
-    }
-
-    private fun assertRefractedRim(view: View) {
-        val density = view.resources.displayMetrics.density
-        val width = (44 * density).toInt()
-        val height = (30 * density).toInt()
-        val offset = (2 * density).toInt()
-        val (upper, center, lower) = sampleBackground(view, width, height, listOf(offset, height / 2, height - offset - 1))
-        assertTrue(Color.alpha(upper) > 180 && Color.alpha(lower) > 140)
-        assertTrue(Color.alpha(center) in 150..205)
-        assertTrue(Color.red(upper) > 225 && Color.green(upper) > 225 && Color.blue(upper) > 225)
-        assertTrue(Color.blue(lower) > Color.red(lower))
     }
 
     private fun sampleGradient(view: View): List<Int> =
