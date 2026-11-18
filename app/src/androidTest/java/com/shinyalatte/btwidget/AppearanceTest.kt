@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
-import android.graphics.drawable.GradientDrawable
 import android.app.Instrumentation
 import android.app.Activity
 import android.os.Bundle
@@ -73,12 +72,16 @@ class AppearanceInstrumentation : Instrumentation() {
                                 val connected = state == Ui.State.CONNECTED
                                 assertEquals(View.VISIBLE, button.visibility)
                                 assertEquals(if (connected) "切断" else "再接続", button.text.toString())
-                                assertEquals(Color.parseColor("#102A43"), button.currentTextColor)
-                                assertEquals(Color.parseColor("#F0FFFFFF"), solidColor(button))
+                                assertEquals(Color.WHITE, button.currentTextColor)
+                                assertGlassButton(button)
                                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                                 assertEquals(0, button.layout.getEllipsisCount(0))
                             }
                             else -> assertEquals(View.GONE, button.visibility)
+                        }
+                        val switch = view.findViewById<TextView>(R.id.btn_switch)
+                        if (switch != null && switch.visibility == View.VISIBLE) {
+                            assertGlassButton(switch)
                         }
                         render(view, "widget-$mode-${provider.kind}-$state")
                     }
@@ -128,12 +131,30 @@ class AppearanceInstrumentation : Instrumentation() {
         Appearance.save(c, Appearance.SYSTEM)
     }
 
-    private fun solidColor(view: View): Int? =
-        (view.background as GradientDrawable).color?.defaultColor
-
     private enum class Tint { GREEN, RED, LIGHT, DARK }
 
     private fun assertGlass(view: View, tint: Tint) {
+        for (pixel in sampleGradient(view)) {
+            assertTrue(Color.alpha(pixel) in 190..250)
+            val red = Color.red(pixel)
+            val green = Color.green(pixel)
+            val blue = Color.blue(pixel)
+            assertTrue(when (tint) {
+                Tint.GREEN -> green > blue && blue > red
+                Tint.RED -> red > blue && blue > green
+                Tint.LIGHT -> red > 225 && green > 225 && blue > 225
+                Tint.DARK -> red < 50 && green < 60 && blue < 80
+            })
+        }
+    }
+
+    private fun assertGlassButton(view: View) {
+        for (pixel in sampleGradient(view)) {
+            assertTrue(Color.alpha(pixel) in 1..64)
+        }
+    }
+
+    private fun sampleGradient(view: View): List<Int> {
         val background = view.background
         val originalBounds = Rect(background.bounds)
         val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
@@ -143,18 +164,7 @@ class AppearanceInstrumentation : Instrumentation() {
             val highlight = bitmap.getPixel(48, 16)
             val base = bitmap.getPixel(48, 80)
             assertTrue(highlight != base)
-            for (pixel in listOf(highlight, base)) {
-                assertTrue(Color.alpha(pixel) in 190..250)
-                val red = Color.red(pixel)
-                val green = Color.green(pixel)
-                val blue = Color.blue(pixel)
-                assertTrue(when (tint) {
-                    Tint.GREEN -> green > blue && blue > red
-                    Tint.RED -> red > blue && blue > green
-                    Tint.LIGHT -> red > 225 && green > 225 && blue > 225
-                    Tint.DARK -> red < 50 && green < 60 && blue < 80
-                })
-            }
+            return listOf(highlight, base)
         } finally {
             background.bounds = originalBounds
             bitmap.recycle()

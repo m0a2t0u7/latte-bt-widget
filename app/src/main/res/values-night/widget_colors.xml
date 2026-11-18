@@ -2,4 +2,5 @@
     <color name="widget_text">#F2F5FA</color>
     <color name="widget_muted">#B8C5D5</color>
     <item type="drawable" name="widget_bg_system">@drawable/widget_bg</item>
+    <item type="drawable" name="btn_gray_system">@drawable/btn_gray_rect</item>
 </resources>

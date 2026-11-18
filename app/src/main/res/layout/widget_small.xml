@@ -12,5 +12,5 @@
         android:layout_marginTop="3dp" android:gravity="center"
         android:includeFontPadding="false" android:maxLines="1" android:textSize="10sp" android:ellipsize="end"
         android:autoSizeTextType="uniform" android:autoSizeMinTextSize="8sp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="1sp"
-        android:textColor="#102A43" android:background="@drawable/btn_widget_action" />
+        android:textColor="#FFFFFF" android:background="@drawable/btn_widget_action" />
 </LinearLayout>
