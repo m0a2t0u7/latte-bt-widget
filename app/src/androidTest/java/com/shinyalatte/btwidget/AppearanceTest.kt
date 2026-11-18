@@ -74,6 +74,7 @@ class AppearanceInstrumentation : Instrumentation() {
                                 assertEquals(if (connected) "切断" else "再接続", button.text.toString())
                                 assertEquals(Color.WHITE, button.currentTextColor)
                                 assertGlassButton(button)
+                                assertRefractedRim(button)
                                 assertTrue(button.top >= 0 && button.bottom <= view.height)
                                 assertEquals(0, button.layout.getEllipsisCount(0))
                             }
@@ -154,17 +155,29 @@ class AppearanceInstrumentation : Instrumentation() {
         }
     }
 
-    private fun sampleGradient(view: View): List<Int> {
+    private fun assertRefractedRim(view: View) {
+        val density = view.resources.displayMetrics.density
+        val width = (44 * density).toInt()
+        val height = (30 * density).toInt()
+        val offset = (2 * density).toInt()
+        val (upper, center, lower) = sampleBackground(view, width, height, listOf(offset, height / 2, height - offset - 1))
+        assertTrue(Color.alpha(upper) > 180 && Color.alpha(lower) > 140)
+        assertTrue(Color.alpha(center) <= 64)
+        assertTrue(Color.red(upper) > 225 && Color.green(upper) > 225 && Color.blue(upper) > 225)
+        assertTrue(Color.blue(lower) > Color.red(lower))
+    }
+
+    private fun sampleGradient(view: View): List<Int> =
+        sampleBackground(view, 96, 96, listOf(16, 80)).also { assertTrue(it[0] != it[1]) }
+
+    private fun sampleBackground(view: View, width: Int, height: Int, sampleRows: List<Int>): List<Int> {
         val background = view.background
         val originalBounds = Rect(background.bounds)
-        val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         try {
             background.setBounds(0, 0, bitmap.width, bitmap.height)
             background.draw(Canvas(bitmap))
-            val highlight = bitmap.getPixel(48, 16)
-            val base = bitmap.getPixel(48, 80)
-            assertTrue(highlight != base)
-            return listOf(highlight, base)
+            return sampleRows.map { row -> bitmap.getPixel(width / 2, row) }
         } finally {
             background.bounds = originalBounds
             bitmap.recycle()
